@@ -12,13 +12,6 @@ import java.net.URL;
  */
 public class HttpHelper {
 
-    /**
-     * Returns text from a URL on a web server
-     *
-     * @param address
-     * @return
-     * @throws IOException
-     */
     public static String downloadUrl(String address) throws IOException {
 
         InputStream is = null;
@@ -49,20 +42,13 @@ public class HttpHelper {
         return null;
     }
 
-    /**
-     * Reads an InputStream and converts it to a String.
-     *
-     * @param stream
-     * @return
-     * @throws IOException
-     */
     private static String readStream(InputStream stream) throws IOException {
 
         byte[] buffer = new byte[1024];
         ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
         BufferedOutputStream out = null;
         try {
-            int length = 0;
+            int length;
             out = new BufferedOutputStream(byteArray);
             while ((length = stream.read(buffer)) > 0) {
                 out.write(buffer, 0, length);

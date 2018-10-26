@@ -34,6 +34,9 @@ public class Movie implements Parcelable {
     private String releaseDate;
 
 
+    public Movie() {
+    }
+
     public int getVoteCount() {
         return voteCount;
     }
@@ -178,6 +181,7 @@ public class Movie implements Parcelable {
         dest.writeString(this.overview);
         dest.writeDouble(this.voteAverage);
         dest.writeString(this.releaseDate);
+        dest.writeInt(this.id);
     }
 
     protected Movie(Parcel in) {
@@ -186,6 +190,7 @@ public class Movie implements Parcelable {
         this.overview = in.readString();
         this.voteAverage = in.readDouble();
         this.releaseDate = in.readString();
+        this.id = in.readInt();
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {

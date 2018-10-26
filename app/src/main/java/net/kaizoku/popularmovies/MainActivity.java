@@ -15,7 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 import net.kaizoku.popularmovies.model.Movie;
-import net.kaizoku.popularmovies.services.MyService;
+import net.kaizoku.popularmovies.services.MovieService;
 import net.kaizoku.popularmovies.utils.NetworkHelper;
 import java.util.ArrayList;
 
@@ -28,22 +28,16 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Movie> myMovies = new ArrayList<>();
     private MoviesAdapter customAdapter;
     private static String BASE_URL = "http://api.themoviedb.org/3/movie/";
-    private static final String API_KEY = "Place your API key here";
-
-    private static String MY_URL1 = BASE_URL + "popular" + "?api_key=" + API_KEY;
-    private static String MY_URL2 = BASE_URL + "top_rated" + "?api_key=" + API_KEY;
-
-//    private static String MY_URL = BASE_URL + sort + "?api_key=" + API_KEY;
-
+    public static final String API_KEY = "766e0d54c4241f7e96ee6bbe6178a441";
+    public static String MY_URL1 = BASE_URL + "popular" + "?api_key=" + API_KEY;
+    public static String MY_URL2 = BASE_URL + "top_rated" + "?api_key=" + API_KEY;
 
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ArrayList<Movie> movies =
-                    intent.getParcelableArrayListExtra(MyService.MY_SERVICE_PAYLOAD);
-            myMovies = movies;
-
+            myMovies = intent.getParcelableArrayListExtra
+                    (MovieService.MY_MOVIE_SERVICE_PAYLOAD);
             for (Movie movie : myMovies) {
                 if (movie == null) {
                     Log.i(TAG, "onReceive: movie is null");
@@ -74,17 +68,17 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(mBroadcastReceiver,
-                        new IntentFilter(MyService.MY_SERVICE_MESSAGE));
+                        new IntentFilter(MovieService.MY_MOVIE_SERVICE_MESSAGE));
 
         networkOk = NetworkHelper.hasNetworkAccess(getApplicationContext());
 
         if (networkOk) {
             if (sort.equals("popular")) {
-                Intent intent = new Intent(this, MyService.class);
+                Intent intent = new Intent(this, MovieService.class);
                 intent.setData(Uri.parse(MY_URL1));
                 startService(intent);
             } else if (sort.equals("top_rated")){
-                Intent intent = new Intent(this, MyService.class);
+                Intent intent = new Intent(this, MovieService.class);
                 intent.setData(Uri.parse(MY_URL2));
                 startService(intent);
             }
@@ -112,14 +106,14 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.item1:
                 sort = "popular";
-                Intent intent1 = new Intent(this, MyService.class);
+                Intent intent1 = new Intent(this, MovieService.class);
                 intent1.setData(Uri.parse(MY_URL1));
                 startService(intent1);
                 Toast.makeText(getApplicationContext(),item.getTitle(),Toast.LENGTH_LONG).show();
                 return true;
             case R.id.item2:
                 sort = "top_rated";
-                Intent intent2 = new Intent(this, MyService.class);
+                Intent intent2 = new Intent(this, MovieService.class);
                 intent2.setData(Uri.parse(MY_URL2));
                 startService(intent2);
                 Toast.makeText(getApplicationContext(), item.getTitle(),Toast.LENGTH_LONG).show();
