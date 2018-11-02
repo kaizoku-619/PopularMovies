@@ -1,23 +1,14 @@
 package net.kaizoku.popularmovies;
 
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -28,37 +19,27 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import net.kaizoku.popularmovies.model.Movie;
+import net.kaizoku.popularmovies.model.MovieReview;
 import net.kaizoku.popularmovies.model.MovieTrailer;
-import net.kaizoku.popularmovies.services.MovieService;
+import net.kaizoku.popularmovies.utils.HttpHelper;
+import net.kaizoku.popularmovies.utils.JsonUtils;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
+
+import static net.kaizoku.popularmovies.MainActivity.API_KEY;
 
 public class DetailedMovieActivity extends AppCompatActivity {
 
     private static final String TAG = "DetailedMovieActivity";
-    public static String TRAILER_URL;
-    private TextView title, desc, rating, releaseDate;
+    public static String TRAILER_URL, REVIEW_URL;
+    private TextView title, desc, rating, releaseDate, reviewTv;
     private ImageView poster;
     private ListView listView;
-    private Movie movie;
-    ArrayList<MovieTrailer> myMovieTrailers;
-    ArrayList<String> trailerNames;
-    ArrayAdapter<String> adapter;
-
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            myMovieTrailers = intent.getParcelableArrayListExtra(MovieService.MY_TRAILER_SERVICE_PAYLOAD);
-            Log.i(TAG, "onReceive: " + myMovieTrailers);
-            trailerNames = new ArrayList<>();
-            for (MovieTrailer trailer : myMovieTrailers) {
-                trailerNames.add(trailer.getName());
-            }
-            Log.i(TAG, "onReceive: trailerNames = " + trailerNames);
-            adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, trailerNames);
-            listView.setAdapter(adapter);
-        }
-    };
+    private ArrayList<MovieTrailer> myMovieTrailers;
+    private ArrayList<MovieReview> myMovieReviews;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,48 +48,55 @@ public class DetailedMovieActivity extends AppCompatActivity {
 
         initView();
 
-        LocalBroadcastManager.getInstance(getApplicationContext())
-                .registerReceiver(mBroadcastReceiver,
-                        new IntentFilter(MovieService.MY_TRAILER_SERVICE_MESSAGE));
-
         Intent intent = getIntent();
-        movie = intent.getParcelableExtra("movie");
-
+        Movie movie = intent.getParcelableExtra("movie");
 
         TRAILER_URL = "http://api.themoviedb.org/3/movie/" +
                 movie.getId()
-                + "/videos?api_key=" + MainActivity.API_KEY;
+                + "/videos?api_key=" + API_KEY;
+        REVIEW_URL = "https://api.themoviedb.org/3/movie/" +
+                movie.getId() +
+                "/reviews?api_key=" + API_KEY;
 
-        showMovieDetails();
+        TrailerAsyncTask trailerAsyncTask = new TrailerAsyncTask();
+        trailerAsyncTask.execute(TRAILER_URL);
 
-        try {
-            Intent mIntent = new Intent(this, MovieService.class);
-            mIntent.setData(Uri.parse(TRAILER_URL));
-            startService(mIntent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ReviewAsyncTask reviewAsyncTask = new ReviewAsyncTask();
+        reviewAsyncTask.execute(REVIEW_URL);
+
+        showMovieDetails(movie);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Log.i(TAG, "onItemClick: " + myMovieTrailers.get(position).getName());
-                watchYoutubeVideo(getApplicationContext(), myMovieTrailers.get(position).getKey());
+                try {
+                    watchYoutubeVideo(getApplicationContext(), myMovieTrailers.get(position).getKey());
+                } catch (IndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
     private void initView() {
-        title = (findViewById(R.id.movie_title));
+        listView = (findViewById(R.id.listView));
+
+        View headerView = getLayoutInflater().inflate(R.layout.activity_detailed_movie_header, null);
+        listView.addHeaderView(headerView);
+
+        View footerView = getLayoutInflater().inflate(R.layout.activity_detailed_movie_footer, null);
+        listView.addFooterView(footerView);
+
+        reviewTv = (findViewById(R.id.review_tv));
+
+        title = (findViewById( R.id.movie_title));
         desc = (findViewById(R.id.movie_desc));
         rating = (findViewById(R.id.movie_rating));
         releaseDate = (findViewById(R.id.release_date));
         poster = (findViewById(R.id.movie_poster));
-//        trailer = (findViewById(R.id.trailer));
-        listView = (findViewById(R.id.listView));
     }
 
-    private void showMovieDetails() {
+    private void showMovieDetails(Movie movie) {
         title.setText(movie.getOriginalTitle());
         desc.setText(movie.getOverview());
         rating.setText(movie.getVoteAverage() + " / 10");
@@ -120,6 +108,20 @@ public class DetailedMovieActivity extends AppCompatActivity {
                 .into(poster);
     }
 
+    private void showMovieReviews(ArrayList<MovieReview> movieReviews) {
+        for (MovieReview movieReview : movieReviews) {
+            try {
+                reviewTv.append(
+                    "\nAuthor: \n" + movieReview.getAuthor() +
+                    "\n\nContent: \n" + movieReview.getContent() +
+                    "\n____________________________________________________________\n"
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void watchYoutubeVideo(Context context, String key) {
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
         Intent webIntent = new Intent(Intent.ACTION_VIEW,
@@ -128,6 +130,80 @@ public class DetailedMovieActivity extends AppCompatActivity {
             context.startActivity(appIntent);
         } catch (ActivityNotFoundException ex) {
             context.startActivity(webIntent);
+        }
+    }
+
+    private class TrailerAsyncTask extends AsyncTask<String, String, String> {
+
+        String response;
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            try {
+                response = HttpHelper.downloadUrl(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            try {
+                myMovieTrailers = JsonUtils.parseMovieTrailerJson(result);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            for (MovieTrailer trailer : myMovieTrailers) {
+                Log.i(TAG, "onPostExecute: " + trailer.toString());
+            }
+            ArrayList<String> trailerNames = new ArrayList<>();
+            for (MovieTrailer trailer : myMovieTrailers) {
+                trailerNames.add(trailer.getName());
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                    getApplicationContext(),
+                    android.R.layout.simple_list_item_1,
+                    trailerNames
+            );
+            listView.setAdapter(adapter);
+        }
+    }
+
+    private class ReviewAsyncTask extends AsyncTask<String, String, String> {
+
+        String response;
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            try {
+                response = HttpHelper.downloadUrl(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            try {
+                myMovieReviews = JsonUtils.parseMovieReview(result);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            showMovieReviews(myMovieReviews);
         }
     }
 }

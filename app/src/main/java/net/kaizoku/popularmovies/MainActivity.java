@@ -23,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static String sort = "popular";
-    private boolean networkOk;
-    private RecyclerView recyclerView;
     private ArrayList<Movie> myMovies = new ArrayList<>();
     private MoviesAdapter customAdapter;
     private static String BASE_URL = "http://api.themoviedb.org/3/movie/";
@@ -51,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initRecycler() {
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         GridLayoutManager gridLayoutManager =
                 new GridLayoutManager(getApplicationContext(),2);
         recyclerView.setLayoutManager(gridLayoutManager);
@@ -70,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 .registerReceiver(mBroadcastReceiver,
                         new IntentFilter(MovieService.MY_MOVIE_SERVICE_MESSAGE));
 
-        networkOk = NetworkHelper.hasNetworkAccess(getApplicationContext());
+        boolean networkOk = NetworkHelper.hasNetworkAccess(getApplicationContext());
 
         if (networkOk) {
             if (sort.equals("popular")) {

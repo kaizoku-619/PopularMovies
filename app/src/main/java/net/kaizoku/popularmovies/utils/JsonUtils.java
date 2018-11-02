@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import net.kaizoku.popularmovies.model.Movie;
+import net.kaizoku.popularmovies.model.MovieReview;
 import net.kaizoku.popularmovies.model.MovieTrailer;
 
 import org.json.JSONArray;
@@ -14,9 +15,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.kaizoku.popularmovies.services.MovieService.TAG;
-
 public class JsonUtils {
+
+    private static String TAG = "JsonUtils";
 
     public static ArrayList<Movie> parseMovieJson(String json) throws JSONException {
 
@@ -55,6 +56,29 @@ public class JsonUtils {
             );
 
             return movieTrailers;
+        }
+    }
+
+    public static ArrayList<MovieReview> parseMovieReview(String json) throws JSONException {
+        if (json.isEmpty()) {
+            Log.i(TAG, "parseMovieTrailerJson: json is empty or null");
+            return null;
+        } else {
+            Log.i(TAG, "parseMovieReview: entered else block");
+            JSONObject mainObject = new JSONObject(json);
+            JSONArray resultsArray = mainObject.getJSONArray("results");
+
+            ArrayList<MovieReview> movieReviews;
+
+            movieReviews = new Gson().fromJson(
+                    resultsArray.toString(),
+                    new TypeToken<List<MovieReview>>() {
+                    }.getType()
+            );
+
+            Log.i(TAG, "parseMovieReview: " + movieReviews);
+
+            return movieReviews;
         }
     }
 }
