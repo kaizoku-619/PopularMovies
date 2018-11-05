@@ -1,16 +1,23 @@
-package net.kaizoku.popularmovies.model;
+package net.kaizoku.popularmovies.database.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+@Entity
 public class Movie implements Parcelable {
 
     private String title;
     private double popularity;
+    @NonNull
+    @PrimaryKey
     private int id;
     private boolean adult;
     private String overview;
@@ -26,6 +33,7 @@ public class Movie implements Parcelable {
     private String originalLanguage;
     @SerializedName("original_title")
     private String originalTitle;
+    @Ignore
     @SerializedName("genre_ids")
     private List<Integer> genreIds = null;
     @SerializedName("backdrop_path")

@@ -1,4 +1,4 @@
-package net.kaizoku.popularmovies.model;
+package net.kaizoku.popularmovies.database.model;
 
 
 import android.os.Parcel;

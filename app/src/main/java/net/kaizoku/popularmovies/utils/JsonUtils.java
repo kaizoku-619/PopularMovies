@@ -5,9 +5,9 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import net.kaizoku.popularmovies.model.Movie;
-import net.kaizoku.popularmovies.model.MovieReview;
-import net.kaizoku.popularmovies.model.MovieTrailer;
+import net.kaizoku.popularmovies.database.model.Movie;
+import net.kaizoku.popularmovies.database.model.MovieReview;
+import net.kaizoku.popularmovies.database.model.MovieTrailer;
 
 import org.json.JSONArray;
 import org.json.JSONException;

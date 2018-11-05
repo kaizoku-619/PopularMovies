@@ -14,7 +14,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-import net.kaizoku.popularmovies.model.Movie;
+import net.kaizoku.popularmovies.database.model.Movie;
 import net.kaizoku.popularmovies.services.MovieService;
 import net.kaizoku.popularmovies.utils.NetworkHelper;
 import java.util.ArrayList;
@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
                 startService(intent2);
                 Toast.makeText(getApplicationContext(), item.getTitle(),Toast.LENGTH_LONG).show();
                 return true;
+            case R.id.item3:
+                Intent intent3 = new Intent(this, FavoriteMoviesActivity.class);
+                startActivity(intent3);
             default:
                 return super.onOptionsItemSelected(item);
         }

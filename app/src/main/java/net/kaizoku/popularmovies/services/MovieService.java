@@ -9,9 +9,9 @@ import android.util.Log;
 
 import net.kaizoku.popularmovies.DetailedMovieActivity;
 import net.kaizoku.popularmovies.MainActivity;
-import net.kaizoku.popularmovies.model.Movie;
-import net.kaizoku.popularmovies.model.MovieReview;
-import net.kaizoku.popularmovies.model.MovieTrailer;
+import net.kaizoku.popularmovies.database.model.Movie;
+import net.kaizoku.popularmovies.database.model.MovieReview;
+import net.kaizoku.popularmovies.database.model.MovieTrailer;
 import net.kaizoku.popularmovies.utils.HttpHelper;
 import net.kaizoku.popularmovies.utils.JsonUtils;
 

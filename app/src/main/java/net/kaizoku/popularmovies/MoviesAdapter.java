@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 import com.squareup.picasso.Picasso;
-import net.kaizoku.popularmovies.model.Movie;
+import net.kaizoku.popularmovies.database.model.Movie;
 import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MovieViewHolder>{

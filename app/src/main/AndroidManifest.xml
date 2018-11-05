@@ -28,6 +28,12 @@
         <service
             android:name=".services.MovieService"
             android:exported="false" />
+
+        <activity android:name=".FavoriteMoviesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.kaizoku.popularmovies.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

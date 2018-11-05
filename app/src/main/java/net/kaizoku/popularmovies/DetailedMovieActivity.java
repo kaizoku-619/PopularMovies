@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,15 +14,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
-import net.kaizoku.popularmovies.model.Movie;
-import net.kaizoku.popularmovies.model.MovieReview;
-import net.kaizoku.popularmovies.model.MovieTrailer;
+
+import net.kaizoku.popularmovies.database.MovieDatabase;
+import net.kaizoku.popularmovies.database.model.Movie;
+import net.kaizoku.popularmovies.database.model.MovieReview;
+import net.kaizoku.popularmovies.database.model.MovieTrailer;
 import net.kaizoku.popularmovies.utils.HttpHelper;
 import net.kaizoku.popularmovies.utils.JsonUtils;
 
@@ -38,18 +40,24 @@ public class DetailedMovieActivity extends AppCompatActivity {
     private TextView title, desc, rating, releaseDate, reviewTv;
     private ImageView poster;
     private ListView listView;
+    private FloatingActionButton fab;
     private ArrayList<MovieTrailer> myMovieTrailers;
     private ArrayList<MovieReview> myMovieReviews;
+    private Movie movie;
+
+    private MovieDatabase movieDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed_movie);
 
+        movieDatabase = MovieDatabase.getDatabase(getApplicationContext());
+
         initView();
 
         Intent intent = getIntent();
-        Movie movie = intent.getParcelableExtra("movie");
+        movie = intent.getParcelableExtra("movie");
 
         TRAILER_URL = "http://api.themoviedb.org/3/movie/" +
                 movie.getId()
@@ -76,6 +84,15 @@ public class DetailedMovieActivity extends AppCompatActivity {
                 }
             }
         });
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddMovieAsyncTask task = new AddMovieAsyncTask();
+                task.execute();
+                Snackbar.make(v, "Movie added", Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void initView() {
@@ -94,6 +111,7 @@ public class DetailedMovieActivity extends AppCompatActivity {
         rating = (findViewById(R.id.movie_rating));
         releaseDate = (findViewById(R.id.release_date));
         poster = (findViewById(R.id.movie_poster));
+        fab = findViewById(R.id.fab);
     }
 
     private void showMovieDetails(Movie movie) {
@@ -204,6 +222,15 @@ public class DetailedMovieActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             showMovieReviews(myMovieReviews);
+        }
+    }
+
+    private class AddMovieAsyncTask extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            movieDatabase.daoAccess().insertMovie(movie);
+            return null;
         }
     }
 }
