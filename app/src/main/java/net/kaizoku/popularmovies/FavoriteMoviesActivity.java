@@ -49,7 +49,7 @@ public class FavoriteMoviesActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             for (Movie movie : movies) {
-                Log.i(TAG, "onCreate: " + movie.getOriginalTitle());
+                Log.i(TAG, "onCreate: " + movie.toString());
             }
             MoviesAdapter customAdapter = new MoviesAdapter(FavoriteMoviesActivity.this, movies);
             recyclerView.setAdapter(customAdapter);

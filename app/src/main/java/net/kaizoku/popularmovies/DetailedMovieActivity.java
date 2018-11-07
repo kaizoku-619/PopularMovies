@@ -44,6 +44,7 @@ public class DetailedMovieActivity extends AppCompatActivity {
     private ArrayList<MovieTrailer> myMovieTrailers;
     private ArrayList<MovieReview> myMovieReviews;
     private Movie movie;
+    private static boolean isFavorite;
 
     private MovieDatabase movieDatabase;
 
@@ -74,6 +75,11 @@ public class DetailedMovieActivity extends AppCompatActivity {
 
         showMovieDetails(movie);
 
+        UpdateFavoriteMovieAsyncTask updateFavoriteMovieAsyncTask = new UpdateFavoriteMovieAsyncTask();
+        updateFavoriteMovieAsyncTask.execute();
+
+        Log.i(TAG, "onCreate: movie = " + movie.toString());
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -88,9 +94,17 @@ public class DetailedMovieActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AddMovieAsyncTask task = new AddMovieAsyncTask();
-                task.execute();
-                Snackbar.make(v, "Movie added", Snackbar.LENGTH_SHORT).show();
+                if (isFavorite) {
+                    DeleteMovieAsyncTask deleteMovieAsyncTask = new DeleteMovieAsyncTask();
+                    deleteMovieAsyncTask.execute();
+                    fab.setImageResource(R.drawable.baseline_favorite_border_red_18dp);
+                    Snackbar.make(v, "Movie removed from favorites", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    AddMovieAsyncTask addMovieAsyncTask = new AddMovieAsyncTask();
+                    addMovieAsyncTask.execute();
+                    fab.setImageResource(R.drawable.baseline_favorite_red_18dp);
+                    Snackbar.make(v, "Movie added to favorites", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -233,4 +247,40 @@ public class DetailedMovieActivity extends AppCompatActivity {
             return null;
         }
     }
+
+    private class UpdateFavoriteMovieAsyncTask extends AsyncTask<String, String, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            if (movieDatabase.daoAccess().getMovie(movie.getId()) == null) {
+                return false;
+            } else if (movie.getId() == movieDatabase.daoAccess().getMovie(movie.getId()).getId()) {
+                return true;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                fab.setImageResource(R.drawable.baseline_favorite_red_18dp);
+                isFavorite = true;
+                Log.i(TAG, "onPostExecute: favorite = true");
+            } else {
+                fab.setImageResource(R.drawable.baseline_favorite_border_red_18dp);
+                isFavorite = false;
+                Log.i(TAG, "onPostExecute: favorite = false");
+            }
+        }
+    }
+
+    private class DeleteMovieAsyncTask extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            movieDatabase.daoAccess().deleteMovie(movie);
+            return null;
+        }
+    }
+
 }
